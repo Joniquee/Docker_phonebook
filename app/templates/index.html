@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Phonebook</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #2e2e2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: #ffcc00;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 320px;
+        }
+
+        h1 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 32px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            color: #333;
+            letter-spacing: 1px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+            background: #4d4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #666;
+            transform: scale(1.05);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .alert {
+            display: none;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 5px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Docker Phonebook</h1>
+
+        <button class="btn" onclick="openModal('addModal')">Добавить запись</button>
+        <button class="btn" onclick="openModal('deleteModal')">Удалить запись</button>
+        <button class="btn" onclick="openModal('updateModal')">Обновить запись</button>
+
+        <form action="/data" method="GET">
+            <button class="btn" type="submit">Посмотреть базу данных</button>
+        </form>
+    </div>
+
+    <!-- Модальное окно для добавления записи -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addModal')">&times;</span>
+            <h2>Добавить запись</h2>
+            <form action="/add" method="POST">
+                <input type="text" name="name" placeholder="Имя" required>
+                <input type="text" name="surname" placeholder="Фамилия" required>
+                <input type="text" name="phone" placeholder="Телефон" required>
+                <button class="btn" type="submit">Сохранить</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно для удаления записи -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('deleteModal')">&times;</span>
+            <h2>Удалить запись</h2>
+            <form action="/delete" method="POST">
+                <input type="text" name="phone" placeholder="Телефон" required>
+                <button class="btn" type="submit">Удалить</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно для обновления записи -->
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('updateModal')">&times;</span>
+            <h2>Обновить запись</h2>
+            <form action="/edit" method="POST">
+                <input type="text" name="old_phone" placeholder="Старый телефон" required>
+                <input type="text" name="new_name" placeholder="Новое имя" required>
+                <input type="text" name="new_surname" placeholder="Новая фамилия" required>
+                <input type="text" name="new_phone" placeholder="Новый телефон" required>
+                <button class="btn" type="submit">Обновить</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Всплывающее сообщение -->
+    <div id="alert" class="alert">
+        Операция успешно завершена!
+    </div>
+
+    <script>
+        // Функция для открытия модального окна
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = "block";
+        }
+
+        // Функция для закрытия модального окна
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+
+        // Закрытие окна при клике вне контента
+        window.onclick = function(event) {
+            let modals = ['addModal', 'deleteModal', 'updateModal'];
+            modals.forEach(modalId => {
+                if (event.target == document.getElementById(modalId)) {
+                    closeModal(modalId);
+                }
+            });
+        }
+
+        // Функция для показа всплывающего уведомления
+        function showAlert() {
+            var alertBox = document.getElementById('alert');
+            alertBox.style.display = 'block';
+            setTimeout(function() {
+                alertBox.style.display = 'none';
+            }, 3000);
+        }
+
+        // Проверка URL на успешное выполнение запроса
+        if (window.location.href.indexOf("success=true") != -1) {
+            showAlert();
+        }
+    </script>
+
+</body>
+</html>
